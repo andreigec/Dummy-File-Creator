@@ -1,1 +1,0 @@
-Dummy File Creator creates files of a certain size either instantly, or with random values.

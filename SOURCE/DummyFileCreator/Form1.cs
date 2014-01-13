@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using System.Management;
 using System.Runtime.InteropServices;
 using ANDREICSLIB;
+using DummyFileCreator.ServiceReference1;
 
 namespace DummyFileCreator
 {
@@ -24,12 +25,8 @@ namespace DummyFileCreator
         #region licensing
 
         private const string AppTitle = "Dummy File Creator";
-        private const double AppVersion = 2.2;
+        private const double AppVersion = 2.3;
         private const String HelpString = "";
-
-        private const String UpdatePath = "https://github.com/EvilSeven/Dummy-File-Creator/zipball/master";
-        private const String VersionPath = "https://raw.github.com/EvilSeven/Dummy-File-Creator/master/INFO/version.txt";
-        private const String ChangelogPath = "https://raw.github.com/EvilSeven/Dummy-File-Creator/master/INFO/changelog.txt";
 
         private readonly String OtherText =
             @"©" + DateTime.Now.Year +
@@ -86,8 +83,35 @@ Zip Assets © SharpZipLib (http://www.sharpdevelop.net/OpenSource/SharpZipLib/)
 			TT = new ToolTip();
 			TT.SetToolTip(maxsizebutton, "Will get the max space free on the hdd, then create a file that is that size-1mb");
 
-            Licensing.CreateLicense(this, HelpString, AppTitle, AppVersion, OtherText, VersionPath, UpdatePath, ChangelogPath, menuStrip1);
+            Licensing.CreateLicense(this, menuStrip1, new Licensing.SolutionDetails(GetDetails, HelpString, AppTitle, AppVersion, OtherText));
 		}
+
+        public Licensing.DownloadedSolutionDetails GetDetails()
+        {
+            try
+            {
+                var sr = new ServicesClient();
+                var ti = sr.GetTitleInfo(AppTitle);
+                if (ti == null)
+                    return null;
+                return ToDownloadedSolutionDetails(ti);
+
+            }
+            catch (Exception)
+            {
+            }
+            return null;
+        }
+
+        public static Licensing.DownloadedSolutionDetails ToDownloadedSolutionDetails(TitleInfoServiceModel tism)
+        {
+            return new Licensing.DownloadedSolutionDetails()
+            {
+                ZipFileLocation = tism.LatestTitleDownloadPath,
+                ChangeLog = tism.LatestTitleChangelog,
+                Version = tism.LatestTitleVersion
+            };
+        }
 
 		private void exitToolStripMenuItem_Click(object sender, EventArgs e)
 		{
